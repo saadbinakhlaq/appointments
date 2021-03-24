@@ -67,8 +67,6 @@ describe Event do
     end
 
     it 'several openings on the same day' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 11:00'),
@@ -87,8 +85,6 @@ describe Event do
     end
 
     it 'format' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 09:00'),

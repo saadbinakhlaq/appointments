@@ -28,10 +28,10 @@ class Event < ActiveRecord::Base
     private
 
     def open_slots_per_day
-      event = Event.first
+      events = Event.all
 
-      if event
-        event.slots
+      if events.present?
+        events.map(&:slots).flatten
       else
         []
       end
