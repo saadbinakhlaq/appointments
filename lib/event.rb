@@ -20,7 +20,15 @@ end
 class Event < ActiveRecord::Base
   class << self
     def availabilities(start_date)
-      # Implement your algorithm here. Create as many methods as you like, but no extra files please.
+      (0..6).each_with_object({}) do |index, hash|
+        hash[(start_date + index).to_s] = open_slots_per_day
+      end
+    end
+
+    private
+
+    def open_slots_per_day
+      []
     end
   end
 end

@@ -19,26 +19,18 @@ describe Event do
     end
 
     it 'key is a date string with format YYYY-MM-DD' do
-      skip
-
       _(@availabilities.keys.first).must_equal('2020-01-01')
     end
 
     it 'value is an Array' do
-      skip
-
       _(@availabilities.values.first).must_be_instance_of(Array)
     end
 
     it 'returns the next seven days' do
-      skip
-
       _(@availabilities.size).must_equal(7)
     end
 
     it 'full flow' do
-      skip
-
       _(@availabilities['2020-01-01']).must_be_empty
       _(@availabilities['2020-01-02']).must_be_empty
       _(@availabilities['2020-01-03']).must_be_empty
