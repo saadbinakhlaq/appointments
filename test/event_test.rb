@@ -43,8 +43,6 @@ describe Event do
 
   describe 'openings' do
     it 'one opening' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 11:00'),
@@ -57,8 +55,6 @@ describe Event do
     end
 
     it '30 minutes slots' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 11:00'),
@@ -213,6 +209,18 @@ describe Event do
       availabilities = Event.availabilities(Date.new(2020, 1, 8))
 
       _(availabilities['2020-01-08']).must_be_empty
+    end
+  end
+
+  describe '#slots' do
+    it 'returns slots with 30 min interval' do
+      event = Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 09:00'),
+        ends_at: DateTime.parse('2020-01-01 10:30'),
+      )
+
+      _(event.slots).must_equal(['9:00', '9:30', '10:00'])
     end
   end
 end

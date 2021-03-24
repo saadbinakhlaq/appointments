@@ -28,7 +28,24 @@ class Event < ActiveRecord::Base
     private
 
     def open_slots_per_day
-      []
+      event = Event.first
+
+      if event
+        event.slots
+      else
+        []
+      end
     end
+  end
+
+  def slots
+    slots = []
+    temp = starts_at
+
+    while temp < ends_at
+      slots << temp.strftime('%-H:%M')
+      temp += 30.minutes
+    end
+    slots
   end
 end
