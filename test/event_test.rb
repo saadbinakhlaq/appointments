@@ -145,7 +145,6 @@ describe Event do
     end
 
     it 'an appointment of one slot' do
-      skip
 
       Event.create(
         kind: :appointment,
@@ -159,8 +158,6 @@ describe Event do
     end
 
     it 'an appointment of several slots' do
-      skip
-
       Event.create(
         kind: :appointment,
         starts_at: DateTime.parse('2020-01-01 09:00'),
@@ -173,7 +170,6 @@ describe Event do
     end
 
     it 'several appointment on the same day' do
-      skip
 
       Event.create(
         kind: :appointment,

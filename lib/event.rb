@@ -42,6 +42,12 @@ class Event < ActiveRecord::Base
       openings = events.fetch(Event.kinds[:opening], []).map do |event|
         event.slots
       end.flatten
+
+      appointments = events.fetch(Event.kinds[:appointment], []).map do |event|
+        event.slots
+      end.flatten
+
+      openings - appointments
     end
   end
 
