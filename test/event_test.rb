@@ -191,8 +191,6 @@ describe Event do
 
   describe 'weekly recurring openings' do
     it 'weekly recurring are taken into account day 1' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 09:00'),
@@ -206,8 +204,6 @@ describe Event do
     end
 
     it 'weekly recurring are recurring' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 09:00'),
@@ -221,8 +217,6 @@ describe Event do
     end
 
     it 'non weekly recurring are not recurring' do
-      skip
-
       Event.create(
         kind: :opening,
         starts_at: DateTime.parse('2020-01-01 09:00'),
@@ -233,6 +227,78 @@ describe Event do
       availabilities = Event.availabilities(Date.new(2020, 1, 8))
 
       _(availabilities['2020-01-08']).must_be_empty
+    end
+  end
+
+  describe 'acceptance test' do
+    it 'returns availabilities' do
+      # -------------Weekly Recurring Events--------------
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 09:00'),
+        ends_at: DateTime.parse('2020-01-01 10:30'),
+        weekly_recurring: true
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-02 09:00'),
+        ends_at: DateTime.parse('2020-01-02 10:30'),
+        weekly_recurring: true
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-03 09:00'),
+        ends_at: DateTime.parse('2020-01-03 10:30'),
+        weekly_recurring: true
+      )
+      # -------------Weekly Recurring Events--------------
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-06 09:00'),
+        ends_at: DateTime.parse('2020-01-06 09:30')
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-07 09:00'),
+        ends_at: DateTime.parse('2020-01-07 10:30')
+      )
+
+      Event.create(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-07 09:00'),
+        ends_at: DateTime.parse('2020-01-07 09:30')
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-09 09:00'),
+        ends_at: DateTime.parse('2020-01-09 09:30')
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-10 09:00'),
+        ends_at: DateTime.parse('2020-01-10 09:30')
+      )
+
+      Event.create(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-10 09:00'),
+        ends_at: DateTime.parse('2020-01-10 09:30')
+      )
+
+      availabilities = Event.availabilities(Date.new(2020, 01, 06))
+      _(availabilities['2020-01-06']).must_equal(['9:00'])
+      _(availabilities['2020-01-07']).must_equal(['9:30', '10:00'])
+      _(availabilities['2020-01-08']).must_equal(['9:00', '9:30', '10:00'])
+      _(availabilities['2020-01-09']).must_equal(['9:00', '9:30', '10:00'])
+      _(availabilities['2020-01-10']).must_equal(['9:30', '10:00'])
+      _(availabilities['2020-01-11']).must_be_empty
+      _(availabilities['2020-01-12']).must_be_empty
     end
   end
 

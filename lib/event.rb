@@ -39,16 +39,30 @@ class Event < ActiveRecord::Base
     private
 
     def open_slots_per_day(events, date)
-      openings = events.fetch(Event.kinds[:opening], []).map do |event|
-        event.slots
+      openings = events.fetch(Event.kinds[:opening], []).filter_map do |event|
+        event.slots if event.opening_valid_for_date?(date)
       end.flatten
 
-      appointments = events.fetch(Event.kinds[:appointment], []).map do |event|
-        event.slots
+      appointments = events.fetch(Event.kinds[:appointment], []).filter_map do |event|
+        event.slots if event.appointment_valid_for_date?(date)
       end.flatten
 
-      openings - appointments
+      (Set.new(openings) - Set.new(appointments)).to_a
     end
+  end
+
+  def opening_valid_for_date?(date)
+    if opening? && weekly_recurring? && starts_at.to_date.wday == date.to_date.wday
+      true
+    elsif opening? && starts_at.to_date == date
+      true
+    else
+      false
+    end
+  end
+
+  def appointment_valid_for_date?(date)
+    appointment? && starts_at.to_date == date ? true : false
   end
 
   def slots
