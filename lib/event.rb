@@ -31,6 +31,8 @@ class Event < ActiveRecord::Base
   validate :weekly_recurring_by_kind
   validate :starts_at_before_ends_at, if: Proc.new { |event| !event.ends_at.nil? && !event.starts_at.nil? }
   validate :starts_and_ends_on_same_day, if: Proc.new { |event| !event.ends_at.nil? && !event.starts_at.nil? }
+  validate :check_appointment_when_slots_available
+  validate :is_30_min_slot, if: Proc.new { |event| !event.ends_at.nil? && !event.starts_at.nil? }
   # ---- validations ----- #
 
   class << self
@@ -103,6 +105,26 @@ class Event < ActiveRecord::Base
   def starts_and_ends_on_same_day
     if ends_at.to_date != starts_at.to_date
       errors.add(:ends_at, "can't be on a different day")
+    end
+  end
+
+  def check_appointment_when_slots_available
+    if appointment?
+      availabilities = Event.availabilities(starts_at.to_date)
+      availabilities_for_date = availabilities[starts_at.to_date.to_s]
+      available_slot_match = slots.to_set.subset?(availabilities_for_date.to_set)
+
+      if !available_slot_match
+        errors.add(:kind, "can't create appointment for no available slots")
+      end
+    end
+  end
+
+  def is_30_min_slot
+    seconds_in_min = 60
+    time_difference = (ends_at.to_time - starts_at.to_time)/seconds_in_min
+    if !(time_difference % 30 == 0)
+      errors.add(:ends_at, "is not a 30 min slot")
     end
   end
   # ---- validations ----- #

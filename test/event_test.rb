@@ -104,6 +104,71 @@ describe Event do
       _(event.valid?).must_equal(false)
       _(event.errors[:ends_at]).must_equal(["can't be on a different day"])
     end
+
+    it 'appointments creation if slots available 1' do
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 11:00'),
+        ends_at: DateTime.parse('2020-01-01 12:30')
+      )
+
+      appointment_event = Event.new(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-01 14:00'),
+        ends_at: DateTime.parse('2020-01-01 14:30')
+      )
+
+      _(appointment_event.valid?).must_equal(false)
+      _(appointment_event.errors[:kind]).must_equal(["can't create appointment for no available slots"])
+    end
+
+    it 'appointments creation if slots available 2' do
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 11:00'),
+        ends_at: DateTime.parse('2020-01-01 14:30')
+      )
+
+      appointment_event = Event.new(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-01 14:00'),
+        ends_at: DateTime.parse('2020-01-01 15:00')
+      )
+
+      _(appointment_event.valid?).must_equal(false)
+      _(appointment_event.errors[:kind]).must_equal(["can't create appointment for no available slots"])
+    end
+
+    it 'appointments creation if slots available 3' do
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 11:00'),
+        ends_at: DateTime.parse('2020-01-01 14:30')
+      )
+
+      appointment_event = Event.new(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-01 13:00'),
+        ends_at: DateTime.parse('2020-01-01 14:00')
+      )
+
+      _(appointment_event.valid?).must_equal(true)
+      appointment_event.save!
+      start_date = appointment_event.starts_at.to_date
+      available_slots = Event.availabilities(start_date)
+      _(available_slots[start_date.to_s]).must_equal(['11:00', '11:30', '12:00', '12:30', '14:00'])
+    end
+
+    it 'slots which are multiple of 30 mins' do
+      event = Event.new(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 11:00'),
+        ends_at: DateTime.parse('2020-01-01 14:11')
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:ends_at]).must_equal(["is not a 30 min slot"])
+    end
   end
 
   describe 'skeleton' do
