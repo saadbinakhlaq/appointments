@@ -21,8 +21,17 @@ class Event < ActiveRecord::Base
   enum kind: { opening: 'opening', appointment: 'appointment' }
   WEEK = 7.days
 
+  # ---- scopes ----- #
   scope :within, ->(starts_at, ends_at) { where("(starts_at BETWEEN ? AND ?) OR (kind = 'opening' AND weekly_recurring = ?)", starts_at, ends_at, true) }
   scope :ordered, -> { order(:starts_at) }
+  # ---- scopes ----- #
+
+  # ---- validations ----- #
+  validates :kind, :starts_at, :ends_at, presence: true
+  validate :weekly_recurring_by_kind
+  validate :starts_at_before_ends_at, if: Proc.new { |event| !event.ends_at.nil? && !event.starts_at.nil? }
+  validate :starts_and_ends_on_same_day, if: Proc.new { |event| !event.ends_at.nil? && !event.starts_at.nil? }
+  # ---- validations ----- #
 
   class << self
     def availabilities(start_date)
@@ -75,4 +84,26 @@ class Event < ActiveRecord::Base
     end
     slots
   end
+
+  private
+
+  # ---- validations ----- #
+  def weekly_recurring_by_kind
+    if appointment? && weekly_recurring?
+      errors.add(:weekly_recurring, "can't be true for appointment")
+    end
+  end
+
+  def starts_at_before_ends_at
+    if ends_at <= starts_at
+      errors.add(:ends_at, "can't be before starts_at")
+    end
+  end
+
+  def starts_and_ends_on_same_day
+    if ends_at.to_date != starts_at.to_date
+      errors.add(:ends_at, "can't be on a different day")
+    end
+  end
+  # ---- validations ----- #
 end

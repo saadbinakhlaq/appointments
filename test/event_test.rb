@@ -40,6 +40,72 @@ describe Event do
     end
   end
 
+  describe 'validates' do
+    it 'presence of starts_at' do
+      event = Event.new(
+        kind: :opening,
+        ends_at: DateTime.parse('2020-01-01 13:30')
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:starts_at]).must_equal(["can't be blank"])
+    end
+
+    it 'presence of ends_at' do
+      event = Event.new(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 13:30')
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:ends_at]).must_equal(["can't be blank"])
+    end
+
+    it 'presence of kind' do
+      event = Event.new(
+        starts_at: DateTime.parse('2020-01-01 13:00'),
+        ends_at: DateTime.parse('2020-01-01 13:30')
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:kind]).must_equal(["can't be blank"])
+    end
+
+    it 'weekly_recurring with kind' do
+      event = Event.new(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-01 13:00'),
+        ends_at: DateTime.parse('2020-01-01 13:30'),
+        weekly_recurring: true
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:weekly_recurring]).must_equal(["can't be true for appointment"])
+    end
+
+    it 'starts_at before ends_at' do
+      event = Event.new(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 14:00'),
+        ends_at: DateTime.parse('2020-01-01 13:30')
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:ends_at]).must_equal(["can't be before starts_at"])
+    end
+
+    it 'starts_at and ends_at on same day' do
+      event = Event.new(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 14:00'),
+        ends_at: DateTime.parse('2020-01-02 14:00')
+      )
+
+      _(event.valid?).must_equal(false)
+      _(event.errors[:ends_at]).must_equal(["can't be on a different day"])
+    end
+  end
+
   describe 'skeleton' do
     before do 
       @start_date = Date.new(2020, 1, 1)
