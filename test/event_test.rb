@@ -445,3 +445,55 @@ describe Event do
     end
   end
 end
+
+describe AvailabilityService do
+  before { Event.delete_all }
+
+  describe 'interface' do
+    before do
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-12 09:00'),
+        ends_at: DateTime.parse('2020-01-12 10:30')
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-12 10:00'),
+        ends_at: DateTime.parse('2020-01-12 10:30')
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 09:00'),
+        ends_at: DateTime.parse('2020-01-01 10:30'),
+        weekly_recurring: true
+      )
+
+      Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-05 12:00'),
+        ends_at: DateTime.parse('2020-01-05 14:30'),
+        weekly_recurring: true
+      )
+
+      Event.create(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-12 09:30'),
+        ends_at: DateTime.parse('2020-01-12 10:30')
+      )
+    end
+
+    let(:start_date) { Date.new(2020, 01, 12) }
+
+    let(:events) { Event.within(start_date.at_beginning_of_day, start_date.at_end_of_day).ordered.group_by(&:kind) }
+
+    describe '#open_slots_for_date' do
+      it 'returns slots for that day' do
+        availabilities = AvailabilityService.new(events: events).open_slots_for_date(date: start_date)
+
+        _(availabilities).must_equal(['9:00', '12:00', '12:30', '13:00', '13:30', '14:00'])
+      end
+    end
+  end
+end

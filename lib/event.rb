@@ -17,6 +17,42 @@ ActiveRecord::Schema.define do
   end
 end
 
+class AvailabilityService
+  def initialize(events:)
+    @events = events
+  end
+
+  def open_slots_for_date(date:)
+    openings = events.fetch(Event.kinds[:opening], []).filter_map do |event|
+      event.slots if event.opening_valid_for_date?(date)
+    end.flatten
+
+    appointments = events.fetch(Event.kinds[:appointment], []).filter_map do |event|
+      event.slots if event.appointment_valid_for_date?(date)
+    end.flatten
+
+    (Set.new(openings) - Set.new(appointments)).
+      to_a.
+      sort_by { |time| DateTime.parse(time) }
+  end
+
+  private
+
+  attr_reader :events
+
+  def openings_for_date(date)
+    openings = events.fetch(Event.kinds[:opening], []).filter_map do |event|
+      event.slots if event.opening_valid_for_date?(date)
+    end.flatten
+
+    appointments = events.fetch(Event.kinds[:appointment], []).filter_map do |event|
+      event.slots if event.appointment_valid_for_date?(date)
+    end.flatten
+
+    (Set.new(openings) - Set.new(appointments)).to_a
+  end
+end
+
 class Event < ActiveRecord::Base
   enum kind: { opening: 'opening', appointment: 'appointment' }
   WEEK = 7.days
@@ -43,22 +79,8 @@ class Event < ActiveRecord::Base
 
       (0..6).each_with_object({}) do |index, hash|
         date = start_date + index
-        hash[(start_date + index).to_s] = open_slots_per_day(events, date)
+        hash[(start_date + index).to_s] = AvailabilityService.new(events: events).open_slots_for_date(date: date)
       end
-    end
-
-    private
-
-    def open_slots_per_day(events, date)
-      openings = events.fetch(Event.kinds[:opening], []).filter_map do |event|
-        event.slots if event.opening_valid_for_date?(date)
-      end.flatten
-
-      appointments = events.fetch(Event.kinds[:appointment], []).filter_map do |event|
-        event.slots if event.appointment_valid_for_date?(date)
-      end.flatten
-
-      (Set.new(openings) - Set.new(appointments)).to_a
     end
   end
 
