@@ -8,6 +8,38 @@ require_relative '../lib/event'
 describe Event do
   before { Event.delete_all }
 
+  describe 'scopes' do
+    it 'returns events between set dates' do
+      event_1 = Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-10 11:00'),
+        ends_at: DateTime.parse('2020-01-10 11:30')
+      )
+
+      event_2 = Event.create(
+        kind: :appointment,
+        starts_at: DateTime.parse('2020-01-10 11:00'),
+        ends_at: DateTime.parse('2020-01-10 11:30')
+      )
+
+      event_3 = Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 12:00'),
+        ends_at: DateTime.parse('2020-01-01 13:30'),
+        weekly_recurring: true
+      )
+
+      event_4 = Event.create(
+        kind: :opening,
+        starts_at: DateTime.parse('2020-01-01 11:00'),
+        ends_at: DateTime.parse('2020-01-01 11:30')
+      )
+
+      events = Event.within(DateTime.parse('2020-01-09 11:00'), DateTime.parse('2020-01-20 11:00')).ordered.to_a
+      _(events).must_equal([event_3, event_1, event_2])
+    end
+  end
+
   describe 'skeleton' do
     before do 
       @start_date = Date.new(2020, 1, 1)

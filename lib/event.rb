@@ -18,6 +18,12 @@ ActiveRecord::Schema.define do
 end
 
 class Event < ActiveRecord::Base
+  enum kind: { opening: 'opening', appointment: 'appointment' }
+  WEEK = 7.days
+
+  scope :within, ->(starts_at, ends_at) { where("(starts_at BETWEEN ? AND ?) OR (kind = 'opening' AND weekly_recurring = ?)", starts_at, ends_at, true) }
+  scope :ordered, -> { order(:starts_at) }
+
   class << self
     def availabilities(start_date)
       (0..6).each_with_object({}) do |index, hash|
