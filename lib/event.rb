@@ -26,21 +26,22 @@ class Event < ActiveRecord::Base
 
   class << self
     def availabilities(start_date)
+      end_date = start_date + WEEK
+
+      events = Event.within(start_date.at_beginning_of_day, end_date.at_end_of_day).ordered.group_by(&:kind)
+
       (0..6).each_with_object({}) do |index, hash|
-        hash[(start_date + index).to_s] = open_slots_per_day
+        date = start_date + index
+        hash[(start_date + index).to_s] = open_slots_per_day(events, date)
       end
     end
 
     private
 
-    def open_slots_per_day
-      events = Event.all
-
-      if events.present?
-        events.map(&:slots).flatten
-      else
-        []
-      end
+    def open_slots_per_day(events, date)
+      openings = events.fetch(Event.kinds[:opening], []).map do |event|
+        event.slots
+      end.flatten
     end
   end
 
