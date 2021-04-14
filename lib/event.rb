@@ -39,18 +39,6 @@ class AvailabilityService
   private
 
   attr_reader :events
-
-  def openings_for_date(date)
-    openings = events.fetch(Event.kinds[:opening], []).filter_map do |event|
-      event.slots if event.opening_valid_for_date?(date)
-    end.flatten
-
-    appointments = events.fetch(Event.kinds[:appointment], []).filter_map do |event|
-      event.slots if event.appointment_valid_for_date?(date)
-    end.flatten
-
-    (Set.new(openings) - Set.new(appointments)).to_a
-  end
 end
 
 class Event < ActiveRecord::Base
@@ -58,7 +46,7 @@ class Event < ActiveRecord::Base
   WEEK = 7.days
 
   # ---- scopes ----- #
-  scope :within, ->(starts_at, ends_at) { where("(starts_at BETWEEN ? AND ?) OR (kind = 'opening' AND weekly_recurring = ?)", starts_at, ends_at, true) }
+  scope :within, ->(starts_at, ends_at) { where("(starts_at BETWEEN ? AND ?) OR (kind = 'opening' AND weekly_recurring = ? AND ends_at < ?)", starts_at, ends_at, true, ends_at) }
   scope :ordered, -> { order(:starts_at) }
   # ---- scopes ----- #
 
